@@ -15,6 +15,7 @@ import java.io.BufferedReader;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
@@ -81,7 +82,15 @@ public class Client {
             } catch (Exception e) {
                 if (command.compareTo("/NICK") == 0) {
                     //random nick
-                    String random = randomNick();
+//                    String random = randomNick();
+                    String random;
+                    
+                    ArrayList<String> daftarNick = getAllQueues();
+                    
+                    do{
+                        random = randomNick();
+                    }while(daftarNick.contains(random));
+                    
                     channel.queueDeclare(random, true, false, false, null);
                     System.out.println("Your nickname is " + random);
                     
@@ -111,7 +120,7 @@ public class Client {
         }
     }
     
-    private static boolean isExistChannel(String channelName) throws ParseException
+    private static boolean isExistQueue(String queueName) throws ParseException
     {
         String command = "curl " + username + ":" + password + "@62.210.78.203:15672/api/queues";
         String channelJSON = executeCommand(command);
@@ -125,11 +134,30 @@ public class Client {
         {
             JSONObject json = (JSONObject) array.get(i);
             String name = (String) json.get("name");
-            if(name.equals(channelName))
+            if(name.equals(queueName))
                 ketemu = true;
             i++;
         }
         return ketemu;
+    }
+    
+    private static ArrayList getAllQueues() throws ParseException
+    {
+        String command = "curl " + username + ":" + password + "@62.210.78.203:15672/api/queues";
+        String channelJSON = executeCommand(command);
+        JSONParser parser = new JSONParser();
+        Object obj = parser.parse(channelJSON);
+        JSONArray array = (JSONArray) obj;
+        
+        ArrayList<String> daftarArray = new ArrayList<>();
+        
+        for(int i = 0; i < array.size(); i++)
+        {
+            JSONObject json = (JSONObject) array.get(i);
+            String name = (String) json.get("name");
+            daftarArray.add(name);
+        }
+        return daftarArray;
     }
     
     private static String executeCommand(String command) {
