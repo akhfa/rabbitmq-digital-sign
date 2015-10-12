@@ -56,7 +56,7 @@ public class Client {
                           channel.basicConsume(nick, true, consumer);
                         break;
                     case "/JOIN": 
-                        channel.exchangeDeclare(com[1], "fanout");
+                        channel.exchangeDeclare(com[1], "fanout", true, true, true, null);
                         channel.queueBind(nick, com[1], "");
                         break;
                     case "/LEAVE": 
