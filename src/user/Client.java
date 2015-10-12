@@ -16,6 +16,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Scanner;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -47,14 +48,47 @@ public class Client {
             String command = in.nextLine();
 
             String[] com = command.split(" ", 2);
-            switch (com[0]) {
-                case "/NICK": 
-                    channel.queueDeclare(com[1], true, false, false, null);
-                    nick = com[1];
-                    System.out.println(com[1]);
+            try {
+                switch (com[0]) {
+                    case "/NICK": 
+                        channel.queueDeclare(com[1], true, false, true, null);
+                        nick = com[1];
+                        System.out.println("Your nickname is " + nick);
+
+                        System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
+
+                        Consumer consumer = new DefaultConsumer(channel) {
+                            @Override
+                            public void handleDelivery(String consumerTag, Envelope envelope,
+                                                       AMQP.BasicProperties properties, byte[] body) throws IOException {
+                              String message = new String(body, "UTF-8");
+                              System.out.println(" [x] Received '" + message + "'");
+                            }
+                          };
+                          channel.basicConsume(nick, true, consumer);
+                        break;
+                    case "/JOIN": 
+                        channel.exchangeDeclare(com[1], "fanout", true, false, true, null);
+                        channel.queueBind(nick, com[1], "");
+                        break;
+                    case "/LEAVE": 
+                        channel.queueUnbind(nick, com[1], "");
+                        break;
+                    case "/EXIT":
+                        System.exit(0);
+                    default:
+                        channel.basicPublish(com[0].substring(1), "", null, com[1].getBytes("UTF-8"));
+                        break;
+                }
+            } catch (Exception e) {
+                if (command.compareTo("/NICK") == 0) {
+                    //random nick
+                    String random = randomNick();
+                    channel.queueDeclare(random, true, false, false, null);
+                    System.out.println("Your nickname is " + random);
                     
                     System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
-                    
+
                     Consumer consumer = new DefaultConsumer(channel) {
                         @Override
                         public void handleDelivery(String consumerTag, Envelope envelope,
@@ -64,18 +98,17 @@ public class Client {
                         }
                       };
                       channel.basicConsume(nick, true, consumer);
-                    break;
-                case "/JOIN": 
-                    channel.exchangeDeclare(com[1], "fanout");
-                    channel.queueBind(nick, com[1], "");
-                    break;
-                case "/LEAVE": 
-                    break;
-                case "/EXIT":
-                    System.exit(0);
-                default:
-                    channel.basicPublish(com[0].substring(1), "", null, com[1].getBytes("UTF-8"));
-                    break;
+                }
+                else if ((command.compareTo("/JOIN") == 0) || (command.compareTo("/LEAVE") == 0)) {
+                    //error
+                    System.out.println("Please enter channel name!");
+                }
+                else if (command.charAt(0) == '@') {
+                    System.out.println("Please enter your command for the channel.");
+                }
+                else {
+                    System.out.println("Invalid command.");
+                }
             }
         }
     }
@@ -126,4 +159,16 @@ public class Client {
 		return output.toString();
 
 	}
+
+    public static String randomNick() {
+        String nick = "";
+        String[] pool = {"Zacky", "Raddy", "Will", "Ohm", "Ary", "Ardee", "Ilma", "Khidr", "Galang", "Theo", "Tereta", "Rossi", 
+            "Ivina", "Nicy", "Kiito"};
+        Random randomGenerator = new Random();
+        int randomInt = randomGenerator.nextInt(100);
+        int randomNick = randomGenerator.nextInt(15);
+
+        nick = pool[randomNick].concat(Integer.toString(randomInt));
+        return nick;
+    }
 }
