@@ -41,7 +41,7 @@ public class Client {
                     case "/NICK": 
                         channel.queueDeclare(com[1], true, false, false, null);
                         nick = com[1];
-                        System.out.println(com[1]);
+                        System.out.println("Your nickname is " + nick);
 
                         System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
 
@@ -60,6 +60,7 @@ public class Client {
                         channel.queueBind(nick, com[1], "");
                         break;
                     case "/LEAVE": 
+                        channel.queueUnbind(nick, com[1], "");
       //                  System.out.println(client.greet(client.token, command));
       //                  delElement(client.list, com[1]);
                         break;
@@ -77,6 +78,18 @@ public class Client {
                     String random = randomNick();
                     channel.queueDeclare(random, true, false, false, null);
                     System.out.println("Your nickname is " + random);
+                    
+                    System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
+
+                    Consumer consumer = new DefaultConsumer(channel) {
+                        @Override
+                        public void handleDelivery(String consumerTag, Envelope envelope,
+                                                   AMQP.BasicProperties properties, byte[] body) throws IOException {
+                          String message = new String(body, "UTF-8");
+                          System.out.println(" [x] Received '" + message + "'");
+                        }
+                      };
+                      channel.basicConsume(nick, true, consumer);
                 }
                 else if ((command.compareTo("/JOIN") == 0) || (command.compareTo("/LEAVE") == 0)) {
                     //error
