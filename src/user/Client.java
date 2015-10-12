@@ -39,7 +39,7 @@ public class Client {
             try {
                 switch (com[0]) {
                     case "/NICK": 
-                        channel.queueDeclare(com[1], true, false, false, null);
+                        channel.queueDeclare(com[1], true, false, true, null);
                         nick = com[1];
                         System.out.println("Your nickname is " + nick);
 
@@ -56,7 +56,7 @@ public class Client {
                           channel.basicConsume(nick, true, consumer);
                         break;
                     case "/JOIN": 
-                        channel.exchangeDeclare(com[1], "fanout", true, true, true, null);
+                        channel.exchangeDeclare(com[1], "fanout", true, false, true, null);
                         channel.queueBind(nick, com[1], "");
                         break;
                     case "/LEAVE": 
