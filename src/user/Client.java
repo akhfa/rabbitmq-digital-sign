@@ -11,14 +11,24 @@ package user;
  */
 
 import com.rabbitmq.client.*;
+import java.io.BufferedReader;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Objects;
 import java.util.Scanner;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 public class Client {
-    private static final String EXCHANGE_NAME = "logs";
     
-    public static void main(String[] argv) throws Exception {
+    private static String username = "akhfa";
+    private static String password = "akhfa";
+    
+    public static void main(String[] argv) throws Exception 
+    {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("62.210.78.203");
         factory.setUsername("akhfa");
@@ -27,6 +37,8 @@ public class Client {
         Channel channel = connection.createChannel();
 
         String nick = "";
+        
+        System.out.println(isExistChannel("akhfa"));
 
         while (true) {
             Scanner in = new Scanner(System.in);
@@ -58,45 +70,60 @@ public class Client {
                     channel.queueBind(nick, com[1], "");
                     break;
                 case "/LEAVE": 
-  //                  System.out.println(client.greet(client.token, command));
-  //                  delElement(client.list, com[1]);
                     break;
                 case "/EXIT":
                     System.exit(0);
                 default:
-                    //send message to a channel
-  //                  System.out.println(client.greet(client.token, command));
                     channel.basicPublish(com[0].substring(1), "", null, com[1].getBytes("UTF-8"));
                     break;
             }
         }
     }
+    
+    private static boolean isExistChannel(String channelName) throws ParseException
+    {
+        String command = "curl " + username + ":" + password + "@62.210.78.203:15672/api/queues";
+        String channelJSON = executeCommand(command);
+        System.out.println(channelJSON);
+        JSONParser parser = new JSONParser();
+        Object obj = parser.parse(channelJSON);
+        JSONArray array = (JSONArray) obj;
+        
+        boolean ketemu = false;
+        int i = 0;
+        while(!ketemu && i < array.size())
+        {
+            JSONObject json = (JSONObject) array.get(i);
+            System.out.println(json.get("name"));
+            String name = (String) json.get("name");
+            if(name.equals(channelName))
+                ketemu = true;
+            i++;
+        }
+        return ketemu;
+    }
+    
+    private static String executeCommand(String command) {
+
+		StringBuffer output = new StringBuffer();
+
+		Process p;
+		try {
+			p = Runtime.getRuntime().exec(command);
+			p.waitFor();
+			BufferedReader reader = 
+                            new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+                        String line = "";			
+			while ((line = reader.readLine())!= null) {
+				output.append(line + "\n");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return output.toString();
+
+	}
 }
-  
-//  private String regNick(String token, String nick) {
-//          if (token.equals("") && nick != null) {
-//              if (isNickExist(nick)) {
-//                  //nick exists
-//                  return "Nick exists. Please try another NICK!";
-//              }
-//              else {
-//                  //if nick doesn't exist
-//                  nick = saveNick(nick);
-//                  return nick;
-//              }
-//          }
-//          else if (token.equals("") && nick == null) {
-//              String newNick = "";
-//              do {
-//                  newNick = randomNick();
-//              } while (isNickExist(newNick));
-//              //save nick
-//              saveNick(nick);
-//              return newNick;
-//          }
-//          else {
-//              //already registered
-//              return "Nick already registered. Your nick is " + nick;
-//          }
-//      }
-//}
