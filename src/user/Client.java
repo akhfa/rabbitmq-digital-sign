@@ -13,6 +13,7 @@ package user;
 import com.rabbitmq.client.*;
 
 import java.io.IOException;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Client {
@@ -35,41 +36,72 @@ public class Client {
             String command = in.nextLine();
 
             String[] com = command.split(" ", 2);
-            switch (com[0]) {
-                case "/NICK": 
-                    channel.queueDeclare(com[1], true, false, false, null);
-                    nick = com[1];
-                    System.out.println(com[1]);
-                    
-                    System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
-                    
-                    Consumer consumer = new DefaultConsumer(channel) {
-                        @Override
-                        public void handleDelivery(String consumerTag, Envelope envelope,
-                                                   AMQP.BasicProperties properties, byte[] body) throws IOException {
-                          String message = new String(body, "UTF-8");
-                          System.out.println(" [x] Received '" + message + "'");
-                        }
-                      };
-                      channel.basicConsume(nick, true, consumer);
-                    break;
-                case "/JOIN": 
-                    channel.exchangeDeclare(com[1], "fanout");
-                    channel.queueBind(nick, com[1], "");
-                    break;
-                case "/LEAVE": 
-  //                  System.out.println(client.greet(client.token, command));
-  //                  delElement(client.list, com[1]);
-                    break;
-                case "/EXIT":
-                    System.exit(0);
-                default:
-                    //send message to a channel
-  //                  System.out.println(client.greet(client.token, command));
-                    channel.basicPublish(com[0].substring(1), "", null, com[1].getBytes("UTF-8"));
-                    break;
+            try {
+                switch (com[0]) {
+                    case "/NICK": 
+                        channel.queueDeclare(com[1], true, false, false, null);
+                        nick = com[1];
+                        System.out.println(com[1]);
+
+                        System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
+
+                        Consumer consumer = new DefaultConsumer(channel) {
+                            @Override
+                            public void handleDelivery(String consumerTag, Envelope envelope,
+                                                       AMQP.BasicProperties properties, byte[] body) throws IOException {
+                              String message = new String(body, "UTF-8");
+                              System.out.println(" [x] Received '" + message + "'");
+                            }
+                          };
+                          channel.basicConsume(nick, true, consumer);
+                        break;
+                    case "/JOIN": 
+                        channel.exchangeDeclare(com[1], "fanout");
+                        channel.queueBind(nick, com[1], "");
+                        break;
+                    case "/LEAVE": 
+      //                  System.out.println(client.greet(client.token, command));
+      //                  delElement(client.list, com[1]);
+                        break;
+                    case "/EXIT":
+                        System.exit(0);
+                    default:
+                        //send message to a channel
+      //                  System.out.println(client.greet(client.token, command));
+                        channel.basicPublish(com[0].substring(1), "", null, com[1].getBytes("UTF-8"));
+                        break;
+                }
+            } catch (Exception e) {
+                if (command.compareTo("/NICK") == 0) {
+                    //random nick
+                    String random = randomNick();
+                    channel.queueDeclare(random, true, false, false, null);
+                    System.out.println("Your nickname is " + random);
+                }
+                else if ((command.compareTo("/JOIN") == 0) || (command.compareTo("/LEAVE") == 0)) {
+                    //error
+                    System.out.println("Please enter channel name!");
+                }
+                else if (command.charAt(0) == '@') {
+                    System.out.println("Please enter your command for the channel.");
+                }
+                else {
+                    System.out.println("Invalid command.");
+                }
             }
         }
+    }
+    
+    public static String randomNick() {
+        String nick = "";
+        String[] pool = {"Zacky", "Raddy", "Will", "Ohm", "Ary", "Ardee", "Ilma", "Khidr", "Galang", "Theo", "Tereta", "Rossi", 
+            "Ivina", "Nicy", "Kiito"};
+        Random randomGenerator = new Random();
+        int randomInt = randomGenerator.nextInt(100);
+        int randomNick = randomGenerator.nextInt(15);
+
+        nick = pool[randomNick].concat(Integer.toString(randomInt));
+        return nick;
     }
 }
   
