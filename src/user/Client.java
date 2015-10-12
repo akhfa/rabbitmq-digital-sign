@@ -38,8 +38,6 @@ public class Client {
         Channel channel = connection.createChannel();
 
         String nick = "";
-        
-        System.out.println(isExistChannel("akhfa"));
 
         while (true) {
             Scanner in = new Scanner(System.in);
@@ -117,7 +115,6 @@ public class Client {
     {
         String command = "curl " + username + ":" + password + "@62.210.78.203:15672/api/queues";
         String channelJSON = executeCommand(command);
-        System.out.println(channelJSON);
         JSONParser parser = new JSONParser();
         Object obj = parser.parse(channelJSON);
         JSONArray array = (JSONArray) obj;
@@ -127,7 +124,6 @@ public class Client {
         while(!ketemu && i < array.size())
         {
             JSONObject json = (JSONObject) array.get(i);
-            System.out.println(json.get("name"));
             String name = (String) json.get("name");
             if(name.equals(channelName))
                 ketemu = true;
