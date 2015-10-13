@@ -111,7 +111,7 @@ public class Client {
                             random = randomNick();
                         }while(daftarNick.contains(random));
 
-                        channel.queueDeclare(com[1], false, false, true, null);
+                        channel.queueDeclare(random, false, false, true, null);
                         System.out.println("Your nickname is " + random);
 
                         System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
