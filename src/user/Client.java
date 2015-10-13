@@ -49,9 +49,7 @@ public class Client {
             String[] com = command.split(" ", 2);
             try {
                 switch (com[0]) {
-                    case "/NICK": 
-                        String random;
-                    
+                    case "/NICK":
                         if(!nick.equals(""))
                         {
                             System.out.println("You have registered with nickname: " + nick);
@@ -61,7 +59,7 @@ public class Client {
                             ArrayList<String> daftarNick = getAllQueues();
                             
                             if (!daftarNick.contains(com[1])) {
-                                channel.queueDeclare(com[1], true, false, true, null);
+                                channel.queueDeclare(com[1], false, false, true, null);
                                 nick = com[1];
                                 System.out.println("Your nickname is " + nick);
 
@@ -72,6 +70,7 @@ public class Client {
                                     public void handleDelivery(String consumerTag, Envelope envelope,
                                                                AMQP.BasicProperties properties, byte[] body) throws IOException {
                                       String message = new String(body, "UTF-8");
+                                      System.out.println("");
                                       System.out.println(" [x] Received '" + message + "'");
                                     }
                                   };
@@ -83,7 +82,7 @@ public class Client {
                         }
                         break;
                     case "/JOIN": 
-                        channel.exchangeDeclare(com[1], "fanout", true, false, true, null);
+                        channel.exchangeDeclare(com[1], "fanout", false, false, false, null);
                         channel.queueBind(nick, com[1], "");
                         break;
                     case "/LEAVE": 
@@ -98,7 +97,6 @@ public class Client {
             } catch (Exception e) {
                 if (command.compareTo("/NICK") == 0) {
                     //random nick
-//                    String random = randomNick();
                     String random;
                     
                     if(!nick.equals(""))
@@ -113,7 +111,7 @@ public class Client {
                             random = randomNick();
                         }while(daftarNick.contains(random));
 
-                        channel.queueDeclare(random, true, false, false, null);
+                        channel.queueDeclare(com[1], false, false, true, null);
                         System.out.println("Your nickname is " + random);
 
                         System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
