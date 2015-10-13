@@ -92,7 +92,7 @@ public class Client {
                         System.out.println("bye bye...  :D");
                         System.exit(0);
                     default:
-                        String message = nick + ' ' + '@' + com[0].substring(1) + ' ' + com[1];
+                        String message = nick + ' ' + command;
                         channel.basicPublish(com[0].substring(1), "", null, message.getBytes("UTF-8"));
                         break;
                 }
