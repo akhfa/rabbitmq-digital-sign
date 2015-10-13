@@ -52,27 +52,34 @@ public class Client {
                     case "/NICK": 
                         String random;
                     
-                        ArrayList<String> daftarNick = getAllQueues();
-
-                        if (!daftarNick.contains(com[1])) {
-                            channel.queueDeclare(com[1], true, false, true, null);
-                            nick = com[1];
-                            System.out.println("Your nickname is " + nick);
-
-                            System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
-
-                            Consumer consumer = new DefaultConsumer(channel) {
-                                @Override
-                                public void handleDelivery(String consumerTag, Envelope envelope,
-                                                           AMQP.BasicProperties properties, byte[] body) throws IOException {
-                                  String message = new String(body, "UTF-8");
-                                  System.out.println(" [x] Received '" + message + "'");
-                                }
-                              };
-                              channel.basicConsume(nick, true, consumer);
+                        if(!nick.equals(""))
+                        {
+                            System.out.println("You have registered with nickname: " + nick);
                         }
-                        else {
-                            System.out.println("Nickname exists.");
+                        else
+                        {
+                            ArrayList<String> daftarNick = getAllQueues();
+                            
+                            if (!daftarNick.contains(com[1])) {
+                                channel.queueDeclare(com[1], true, false, true, null);
+                                nick = com[1];
+                                System.out.println("Your nickname is " + nick);
+
+                                System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
+
+                                Consumer consumer = new DefaultConsumer(channel) {
+                                    @Override
+                                    public void handleDelivery(String consumerTag, Envelope envelope,
+                                                               AMQP.BasicProperties properties, byte[] body) throws IOException {
+                                      String message = new String(body, "UTF-8");
+                                      System.out.println(" [x] Received '" + message + "'");
+                                    }
+                                  };
+                                  channel.basicConsume(nick, true, consumer);
+                            }
+                            else {
+                                System.out.println("Nickname exists.");
+                            }
                         }
                         break;
                     case "/JOIN": 
@@ -94,26 +101,34 @@ public class Client {
 //                    String random = randomNick();
                     String random;
                     
-                    ArrayList<String> daftarNick = getAllQueues();
-                    
-                    do{
-                        random = randomNick();
-                    }while(daftarNick.contains(random));
-                    
-                    channel.queueDeclare(random, true, false, false, null);
-                    System.out.println("Your nickname is " + random);
-                    
-                    System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
+                    if(!nick.equals(""))
+                    {
+                        System.out.println("You have registered with nickname: " + nick);
+                    }
+                    else
+                    {
+                        ArrayList<String> daftarNick = getAllQueues();
+                        
+                        do{
+                            random = randomNick();
+                        }while(daftarNick.contains(random));
 
-                    Consumer consumer = new DefaultConsumer(channel) {
-                        @Override
-                        public void handleDelivery(String consumerTag, Envelope envelope,
-                                                   AMQP.BasicProperties properties, byte[] body) throws IOException {
-                          String message = new String(body, "UTF-8");
-                          System.out.println(" [x] Received '" + message + "'");
-                        }
-                      };
-                      channel.basicConsume(nick, true, consumer);
+                        channel.queueDeclare(random, true, false, false, null);
+                        System.out.println("Your nickname is " + random);
+
+                        System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
+
+                        Consumer consumer = new DefaultConsumer(channel) {
+                            @Override
+                            public void handleDelivery(String consumerTag, Envelope envelope,
+                                                       AMQP.BasicProperties properties, byte[] body) throws IOException {
+                              String message = new String(body, "UTF-8");
+                              System.out.println(" [x] Received '" + message + "'");
+                            }
+                          };
+                          channel.basicConsume(nick, true, consumer);
+                    }
+                    
                 }
                 else if ((command.compareTo("/JOIN") == 0) || (command.compareTo("/LEAVE") == 0)) {
                     //error
@@ -131,7 +146,7 @@ public class Client {
     
     private static boolean isExistQueue(String queueName) throws ParseException
     {
-        String command = "curl.exe " + username + ":" + password + "@62.210.78.203:15672/api/queues";
+        String command = "curl " + username + ":" + password + "@62.210.78.203:15672/api/queues";
         String channelJSON = executeCommand(command);
         JSONParser parser = new JSONParser();
         Object obj = parser.parse(channelJSON);
@@ -152,7 +167,7 @@ public class Client {
     
     private static ArrayList getAllQueues() throws ParseException
     {
-        String command = "curl.exe " + username + ":" + password + "@62.210.78.203:15672/api/queues";
+        String command = "curl " + username + ":" + password + "@62.210.78.203:15672/api/queues";
         String channelJSON = executeCommand(command);
         JSONParser parser = new JSONParser();
         Object obj = parser.parse(channelJSON);
