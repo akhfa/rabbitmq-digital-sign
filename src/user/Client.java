@@ -16,7 +16,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
 import org.json.simple.JSONArray;
@@ -26,8 +25,8 @@ import org.json.simple.parser.ParseException;
 
 public class Client {
     
-    private static String username = "akhfa";
-    private static String password = "akhfa";
+    private static final String username = "akhfa";
+    private static final String password = "akhfa";
     
     public static void main(String[] argv) throws Exception 
     {
@@ -38,6 +37,8 @@ public class Client {
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
 
+        ArrayList<String> daftarNick = getAllQueues();
+        
         String nick = "";
 
         while (true) {
@@ -56,8 +57,6 @@ public class Client {
                         }
                         else
                         {
-                            ArrayList<String> daftarNick = getAllQueues();
-                            
                             if (!daftarNick.contains(com[1])) {
                                 channel.queueDeclare(com[1], false, false, true, null);
                                 nick = com[1];
@@ -84,11 +83,14 @@ public class Client {
                     case "/JOIN": 
                         channel.exchangeDeclare(com[1], "fanout", false, false, false, null);
                         channel.queueBind(nick, com[1], "");
+                        System.out.println("You have successfully join " + com[1]);
                         break;
                     case "/LEAVE": 
                         channel.queueUnbind(nick, com[1], "");
+                        System.out.println("Leave " + com[1]);
                         break;
                     case "/EXIT":
+                        System.out.println("bye bye...  :D");
                         System.exit(0);
                     default:
                         channel.basicPublish(com[0].substring(1), "", null, com[1].getBytes("UTF-8"));
@@ -104,9 +106,7 @@ public class Client {
                         System.out.println("You have registered with nickname: " + nick);
                     }
                     else
-                    {
-                        ArrayList<String> daftarNick = getAllQueues();
-                        
+                    {                        
                         do{
                             random = randomNick();
                         }while(daftarNick.contains(random));
