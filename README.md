@@ -15,6 +15,7 @@
 	- rabbitmq-client.jar<br>
 	- port 15672 dan 5672 terbuka
 	- JDK 1.8
+    - Platform Linux yang bisa menjalankan cURL
     
 ###How to deploy<br>
     - Buka folder bin<br>
