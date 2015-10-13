@@ -37,7 +37,7 @@ public class Client {
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
 
-//        ArrayList<String> daftarNick = getAllQueues();
+        ArrayList<String> daftarNick = getAllQueues();
         
         String nick = "";
 
@@ -57,7 +57,7 @@ public class Client {
                         }
                         else
                         {
-//                            if (!daftarNick.contains(com[1])) {
+                            if (!daftarNick.contains(com[1])) {
                                 channel.queueDeclare(com[1], false, false, true, null);
                                 nick = com[1];
                                 System.out.println("Your nickname is " + nick);
@@ -73,10 +73,10 @@ public class Client {
                                     }
                                   };
                                   channel.basicConsume(nick, true, consumer);
-//                            }
-//                            else {
-//                                System.out.println("Nickname exists.");
-//                            }
+                            }
+                            else {
+                                System.out.println("Nickname exists.");
+                            }
                         }
                         break;
                     case "/JOIN": 
@@ -107,9 +107,9 @@ public class Client {
                     }
                     else
                     {                        
-//                        do{
+                        do{
                             random = randomNick();
-//                        }while(daftarNick.contains(random));
+                        }while(daftarNick.contains(random));
                         
                         nick = random;
                         
