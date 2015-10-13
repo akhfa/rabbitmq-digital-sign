@@ -69,8 +69,7 @@ public class Client {
                                     public void handleDelivery(String consumerTag, Envelope envelope,
                                                                AMQP.BasicProperties properties, byte[] body) throws IOException {
                                       String message = new String(body, "UTF-8");
-                                      System.out.println("");
-                                      System.out.println(" [x] Received '" + message + "'");
+                                      filterChannel(message);
                                     }
                                   };
                                   channel.basicConsume(nick, true, consumer);
@@ -93,7 +92,8 @@ public class Client {
                         System.out.println("bye bye...  :D");
                         System.exit(0);
                     default:
-                        channel.basicPublish(com[0].substring(1), "", null, com[1].getBytes("UTF-8"));
+                        String message = nick + ' ' + com[1];
+                        channel.basicPublish(com[0].substring(1), "", null, message.getBytes("UTF-8"));
                         break;
                 }
             } catch (Exception e) {
@@ -110,7 +110,9 @@ public class Client {
                         do{
                             random = randomNick();
                         }while(daftarNick.contains(random));
-
+                        
+                        nick = random;
+                        
                         channel.queueDeclare(random, false, false, true, null);
                         System.out.println("Your nickname is " + random);
 
@@ -121,7 +123,7 @@ public class Client {
                             public void handleDelivery(String consumerTag, Envelope envelope,
                                                        AMQP.BasicProperties properties, byte[] body) throws IOException {
                               String message = new String(body, "UTF-8");
-                              System.out.println(" [x] Received '" + message + "'");
+                              filterChannel(message);
                             }
                           };
                           channel.basicConsume(nick, true, consumer);
@@ -216,5 +218,15 @@ public class Client {
 
         nick = pool[randomNick].concat(Integer.toString(randomInt));
         return nick;
+    }
+    
+     public static void filterChannel(String command) {
+        String[] com = command.split(" ", 3);
+        
+        if (com[1].charAt(0) == '@') {
+            String channelName = com[1].substring(1);
+            System.out.println('\n' + com[0] + '@' + channelName + ": " + com[2]);
+            System.out.print("Please enter your command: ");
+        }
     }
 }
