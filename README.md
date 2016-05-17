@@ -17,6 +17,12 @@
     - Platform Linux yang bisa menjalankan cURL
     - Port 5672 dan 15672 yang terbuka untuk komunikasi ke server rabbitmq
     
+### Persiapan server
+* rabbitmqctl add_user pat BuatPat
+* rabbitmqctl add_vhost pat
+* rabbitmqctl set_permissions -p pat pat ".*" ".*" ".*"
+* rabbitmqctl set_user_tags pat management
+
 ###How to deploy<br>
     - Buka folder bin<br>
     - Jalankan client menggunakan perintah "java -jar client.jar"<br>
