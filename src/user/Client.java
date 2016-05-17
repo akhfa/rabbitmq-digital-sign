@@ -25,15 +25,16 @@ import org.json.simple.parser.ParseException;
 
 public class Client {
     
-    private static final String username = "akhfa";
-    private static final String password = "akhfa";
+    private static final String username = "pat";
+    private static final String password = "BuatPat";
     
     public static void main(String[] argv) throws Exception 
     {
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("62.210.78.203");
-        factory.setUsername("akhfa");
-        factory.setPassword("akhfa");
+        factory.setHost("rabbitmq.akhfa.me");
+        factory.setUsername(username);
+        factory.setPassword(password);
+        factory.setVirtualHost("pat");
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
 
@@ -146,7 +147,7 @@ public class Client {
     
     private static boolean isExistQueue(String queueName) throws ParseException
     {
-        String command = "curl " + username + ":" + password + "@62.210.78.203:15672/api/queues";
+        String command = "curl " + username + ":" + password + "@rabbitmq.akhfa.me:15672/api/queues";
         String channelJSON = executeCommand(command);
         JSONParser parser = new JSONParser();
         Object obj = parser.parse(channelJSON);
@@ -167,7 +168,7 @@ public class Client {
     
     private static ArrayList getAllQueues() throws ParseException
     {
-        String command = "curl " + username + ":" + password + "@62.210.78.203:15672/api/queues";
+        String command = "curl " + username + ":" + password + "@rabbitmq.akhfa.me:15672/api/queues";
         String channelJSON = executeCommand(command);
         JSONParser parser = new JSONParser();
         Object obj = parser.parse(channelJSON);
