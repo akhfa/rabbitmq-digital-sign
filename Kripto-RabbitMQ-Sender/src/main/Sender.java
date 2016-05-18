@@ -37,10 +37,10 @@ public class Sender {
     public void sendMessage(String message) throws IOException, TimeoutException, NoSuchAlgorithmException, InvalidKeyException, SignatureException
     {
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("rabbitmq.akhfa.me");
-        factory.setUsername("kripto");
-        factory.setPassword("BuatKripto");
-        factory.setVirtualHost("kripto");
+        factory.setHost(this.host);
+        factory.setUsername(this.username);
+        factory.setPassword(this.password);
+        factory.setVirtualHost(this.vhost);
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
 
