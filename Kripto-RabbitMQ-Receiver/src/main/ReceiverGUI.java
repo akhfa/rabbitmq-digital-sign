@@ -5,12 +5,25 @@
  */
 package main;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.RSAPublicKeySpec;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author akhfa
  */
 public class ReceiverGUI extends javax.swing.JFrame {
 
+    private PublicKey pubKey;
     /**
      * Creates new form Receiver
      */
@@ -61,7 +74,7 @@ public class ReceiverGUI extends javax.swing.JFrame {
         jPanel2 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         textMessageReceived = new javax.swing.JTextArea();
-        jButton1 = new javax.swing.JButton();
+        buttonStart = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -203,7 +216,12 @@ public class ReceiverGUI extends javax.swing.JFrame {
         textMessageReceived.setRows(5);
         jScrollPane2.setViewportView(textMessageReceived);
 
-        jButton1.setText("Start");
+        buttonStart.setText("Start");
+        buttonStart.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonStartActionPerformed(evt);
+            }
+        });
 
         jButton2.setText("Stop");
 
@@ -219,7 +237,7 @@ public class ReceiverGUI extends javax.swing.JFrame {
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(jButton2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton1)))
+                        .addComponent(buttonStart)))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -229,7 +247,7 @@ public class ReceiverGUI extends javax.swing.JFrame {
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
+                    .addComponent(buttonStart)
                     .addComponent(jButton2))
                 .addContainerGap(136, Short.MAX_VALUE))
         );
@@ -261,9 +279,39 @@ public class ReceiverGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_buttonServerApplyActionPerformed
 
     private void buttonKeyApplyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonKeyApplyActionPerformed
-        // TODO add your handling code here:
-        tabbedPane.setSelectedIndex(2);
+        try {
+            // TODO add your handling code here:
+            this.pubKey = KeyFactory.getInstance("RSA")
+                    .generatePublic(new RSAPublicKeySpec(
+                            new BigInteger(textModulus.getText()),
+                            new BigInteger(textEksponen.getText())));
+            tabbedPane.setSelectedIndex(2);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(ReceiverGUI.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidKeySpecException ex) {
+            JOptionPane.showMessageDialog(null, "Invalid Key");
+        } catch (NumberFormatException ex)
+        {
+            JOptionPane.showMessageDialog(null, "Invalid Key");
+        }
     }//GEN-LAST:event_buttonKeyApplyActionPerformed
+
+    private void buttonStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonStartActionPerformed
+        try {
+            // TODO add your handling code here:
+            Receiver receiver = new Receiver(this.pubKey, 
+                    textHost.getText(), 
+                    textUsername.getText(), 
+                    textPassword.getText(), 
+                    textVhost.getText(), 
+                    textExchange.getText());
+            receiver.receive();
+        } catch (IOException ex) {
+            Logger.getLogger(ReceiverGUI.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (TimeoutException ex) {
+            JOptionPane.showMessageDialog(null, "Connection Timeout");
+        }
+    }//GEN-LAST:event_buttonStartActionPerformed
 
     /**
      * @param args the command line arguments
@@ -305,7 +353,7 @@ public class ReceiverGUI extends javax.swing.JFrame {
     private javax.swing.JButton buttonDefaultServer;
     private javax.swing.JButton buttonKeyApply;
     private javax.swing.JButton buttonServerApply;
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton buttonStart;
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
