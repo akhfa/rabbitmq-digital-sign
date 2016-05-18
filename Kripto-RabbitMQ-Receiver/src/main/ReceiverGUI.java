@@ -27,11 +27,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
-import static main.Receiver.mresult;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import sun.misc.BASE64Encoder;
 
 /**
  *
@@ -346,10 +344,7 @@ public class ReceiverGUI extends javax.swing.JFrame {
             System.err.println(this.pubKey.toString());
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(ReceiverGUI.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvalidKeySpecException ex) {
-            JOptionPane.showMessageDialog(null, "Invalid Key");
-        } catch (NumberFormatException ex)
-        {
+        } catch (InvalidKeySpecException | NumberFormatException ex) {
             JOptionPane.showMessageDialog(null, "Invalid Key");
         }
     }//GEN-LAST:event_buttonKeyApplyActionPerformed
@@ -382,7 +377,7 @@ public class ReceiverGUI extends javax.swing.JFrame {
         } catch (InvalidKeyException ex) {
             JOptionPane.showMessageDialog(null, "InvalidKey");
         } catch (SignatureException ex) {
-            Logger.getLogger(ReceiverGUI.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(null, "Signature Error");
         }
     }//GEN-LAST:event_buttonValidateActionPerformed
 
@@ -414,7 +409,7 @@ public class ReceiverGUI extends javax.swing.JFrame {
                   textSignature.setText((String) jobj.get("signature"));
 
               } catch (ParseException ex) {
-                  Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
+                  JOptionPane.showMessageDialog(null, "Error parsing message");
               }
           }
         };

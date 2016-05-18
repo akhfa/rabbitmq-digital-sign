@@ -18,7 +18,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
-import sun.misc.BASE64Encoder;
 
 /**
  *
@@ -353,7 +352,7 @@ public class SenderGUI2 extends javax.swing.JFrame {
         } catch (InvalidKeyException ex) {
             JOptionPane.showMessageDialog(null, "Invalid Key");
         } catch (SignatureException ex) {
-            Logger.getLogger(SenderGUI2.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(null, "Signature Error");
         }
     }//GEN-LAST:event_buttonSendActionPerformed
 
@@ -375,9 +374,9 @@ public class SenderGUI2 extends javax.swing.JFrame {
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(SenderGUI2.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InvalidKeyException ex) {
-            Logger.getLogger(SenderGUI2.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(null, "Invalid Key");
         } catch (SignatureException ex) {
-            Logger.getLogger(SenderGUI2.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(null, "Signature Error");
         }
     }//GEN-LAST:event_buttonGenerateSignatureActionPerformed
 
