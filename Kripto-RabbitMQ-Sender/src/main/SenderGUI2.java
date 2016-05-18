@@ -11,11 +11,13 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.Signature;
 import java.security.SignatureException;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import sun.misc.BASE64Encoder;
 
 /**
  *
@@ -76,6 +78,11 @@ public class SenderGUI2 extends javax.swing.JFrame {
         jScrollPane3 = new javax.swing.JScrollPane();
         textMessage = new javax.swing.JTextArea();
         buttonSend = new javax.swing.JToggleButton();
+        jLabel9 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        buttonGenerateSignature = new javax.swing.JButton();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        textSignature = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -156,7 +163,7 @@ public class SenderGUI2 extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(buttonApply)
                     .addComponent(buttonDefault))
-                .addContainerGap(30, Short.MAX_VALUE))
+                .addContainerGap(77, Short.MAX_VALUE))
         );
 
         tabbedPane.addTab("Server Setting", jPanel1);
@@ -212,7 +219,7 @@ public class SenderGUI2 extends javax.swing.JFrame {
                 .addComponent(textEksponen, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel8)
-                .addContainerGap(41, Short.MAX_VALUE))
+                .addContainerGap(88, Short.MAX_VALUE))
         );
 
         tabbedPane.addTab("Sender Key", jPanel2);
@@ -228,6 +235,21 @@ public class SenderGUI2 extends javax.swing.JFrame {
             }
         });
 
+        jLabel9.setText("Message");
+
+        jLabel10.setText("Signature");
+
+        buttonGenerateSignature.setText("Generate Signature");
+        buttonGenerateSignature.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonGenerateSignatureActionPerformed(evt);
+            }
+        });
+
+        textSignature.setColumns(20);
+        textSignature.setRows(5);
+        jScrollPane2.setViewportView(textSignature);
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -236,19 +258,35 @@ public class SenderGUI2 extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 660, Short.MAX_VALUE)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel9)
+                            .addComponent(jLabel10))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(buttonSend)))
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(buttonGenerateSignature, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(buttonSend, javax.swing.GroupLayout.Alignment.TRAILING))))
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 212, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(11, 11, 11)
+                .addComponent(jLabel9)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(buttonGenerateSignature)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel10)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(buttonSend)
-                .addContainerGap(48, Short.MAX_VALUE))
+                .addContainerGap(40, Short.MAX_VALUE))
         );
 
         tabbedPane.addTab("Message", jPanel3);
@@ -302,7 +340,7 @@ public class SenderGUI2 extends javax.swing.JFrame {
         try {
             // TODO add your handling code here:
             Sender sender = new Sender(this.privKey, textHost.getText(), textUsername.getText(), textPassword.getText(), textVhost.getText(), textExchange.getText());
-            sender.sendMessage(textMessage.getText());
+            sender.sendMessage(textMessage.getText(), textSignature.getText());
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, "Error Sending Message");
         } catch (TimeoutException ex) {
@@ -315,6 +353,26 @@ public class SenderGUI2 extends javax.swing.JFrame {
             Logger.getLogger(SenderGUI2.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_buttonSendActionPerformed
+
+    private void buttonGenerateSignatureActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonGenerateSignatureActionPerformed
+        try {
+            // TODO add your handling code here:
+            // generate signed
+            Signature sig = Signature.getInstance("MD5WithRSA");
+            sig.initSign(this.privKey);
+            sig.update(textMessage.getText().getBytes());
+            
+            byte[] signatureBytes = sig.sign();
+            
+            textSignature.setText(new BASE64Encoder().encode(signatureBytes));
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(SenderGUI2.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidKeyException ex) {
+            Logger.getLogger(SenderGUI2.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SignatureException ex) {
+            Logger.getLogger(SenderGUI2.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_buttonGenerateSignatureActionPerformed
 
     /**
      * @param args the command line arguments
@@ -355,8 +413,10 @@ public class SenderGUI2 extends javax.swing.JFrame {
     private javax.swing.JButton buttonApply;
     private javax.swing.JButton buttonDefault;
     private javax.swing.JButton buttonGeneratePublicKey;
+    private javax.swing.JButton buttonGenerateSignature;
     private javax.swing.JToggleButton buttonSend;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -364,10 +424,12 @@ public class SenderGUI2 extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTabbedPane tabbedPane;
     private javax.swing.JTextField textEksponen;
@@ -376,6 +438,7 @@ public class SenderGUI2 extends javax.swing.JFrame {
     private javax.swing.JTextArea textMessage;
     private javax.swing.JTextArea textModulus;
     private javax.swing.JTextField textPassword;
+    private javax.swing.JTextArea textSignature;
     private javax.swing.JTextField textUsername;
     private javax.swing.JTextField textVhost;
     // End of variables declaration//GEN-END:variables

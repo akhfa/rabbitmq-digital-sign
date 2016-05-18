@@ -34,7 +34,7 @@ public class Sender {
         this.vhost = vhost;
         this.exchange = exchange;
     }
-    public void sendMessage(String message) throws IOException, TimeoutException, NoSuchAlgorithmException, InvalidKeyException, SignatureException
+    public void sendMessage(String message, String signature) throws IOException, TimeoutException, NoSuchAlgorithmException, InvalidKeyException, SignatureException
     {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(this.host);
@@ -46,16 +46,9 @@ public class Sender {
 
         channel.exchangeDeclare(this.exchange, "fanout");
 
-        // generate signed
-        Signature sig = Signature.getInstance("MD5WithRSA");
-        sig.initSign(this.privKey);
-        sig.update(message.getBytes());
-        
-        byte[] signatureBytes = sig.sign();
-        
         JSONObject jobject = new JSONObject();
         jobject.put("message", message);
-        jobject.put("signature", new BASE64Encoder().encode(signatureBytes));
+        jobject.put("signature", signature);
         
         System.out.println(jobject.toJSONString());
         channel.basicPublish(this.exchange, "", null, jobject.toJSONString().getBytes("UTF-8"));
