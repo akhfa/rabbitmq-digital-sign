@@ -5,17 +5,33 @@
  */
 package main;
 
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Consumer;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.Base64;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import static main.Receiver.mresult;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import sun.misc.BASE64Encoder;
 
 /**
  *
@@ -24,6 +40,8 @@ import javax.swing.JOptionPane;
 public class ReceiverGUI extends javax.swing.JFrame {
 
     private PublicKey pubKey;
+    ConnectionFactory factory;
+    
     /**
      * Creates new form Receiver
      */
@@ -39,6 +57,10 @@ public class ReceiverGUI extends javax.swing.JFrame {
         textPassword.setText("BuatKripto");
         textVhost.setText("kripto");
         textExchange.setText("kripto");
+        textModulus.setLineWrap(true);
+        textMessageReceived.setLineWrap(true);
+        textSignature.setLineWrap(true);
+        textMessageReceived.setLineWrap(true);
     }
     
     /**
@@ -75,7 +97,11 @@ public class ReceiverGUI extends javax.swing.JFrame {
         jScrollPane2 = new javax.swing.JScrollPane();
         textMessageReceived = new javax.swing.JTextArea();
         buttonStart = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        buttonValidate = new javax.swing.JButton();
+        jLabel8 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        textSignature = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -122,7 +148,7 @@ public class ReceiverGUI extends javax.swing.JFrame {
                                 .addComponent(buttonDefaultServer)
                                 .addGap(34, 34, 34)
                                 .addComponent(buttonServerApply)))
-                        .addGap(0, 178, Short.MAX_VALUE))
+                        .addGap(0, 183, Short.MAX_VALUE))
                     .addComponent(textUsername)
                     .addComponent(textPassword)
                     .addComponent(textVhost)
@@ -156,7 +182,7 @@ public class ReceiverGUI extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonDefaultServer)
                     .addComponent(buttonServerApply))
-                .addContainerGap(48, Short.MAX_VALUE))
+                .addContainerGap(104, Short.MAX_VALUE))
         );
 
         tabbedPane.addTab("Server Setting", jPanel1);
@@ -183,7 +209,7 @@ public class ReceiverGUI extends javax.swing.JFrame {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)
                     .addComponent(textEksponen)
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -206,7 +232,7 @@ public class ReceiverGUI extends javax.swing.JFrame {
                 .addComponent(textEksponen, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(buttonKeyApply)
-                .addContainerGap(61, Short.MAX_VALUE))
+                .addContainerGap(117, Short.MAX_VALUE))
         );
 
         tabbedPane.addTab("Receiver Key", jPanel3);
@@ -223,7 +249,21 @@ public class ReceiverGUI extends javax.swing.JFrame {
             }
         });
 
-        jButton2.setText("Stop");
+        buttonValidate.setText("Validate");
+        buttonValidate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonValidateActionPerformed(evt);
+            }
+        });
+
+        jLabel8.setText("Message");
+
+        jLabel9.setText("Signature");
+
+        textSignature.setEditable(false);
+        textSignature.setColumns(20);
+        textSignature.setRows(5);
+        jScrollPane3.setViewportView(textSignature);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -232,24 +272,40 @@ public class ReceiverGUI extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jLabel9)
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(buttonStart)))
-                .addContainerGap())
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
+                                .addComponent(jLabel8)
+                                .addGap(0, 0, Short.MAX_VALUE)))
+                        .addContainerGap())))
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(107, 107, 107)
+                .addComponent(buttonValidate)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(buttonStart)
+                .addGap(0, 118, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(4, 4, 4)
+                .addComponent(jLabel8)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel9)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(buttonStart)
-                    .addComponent(jButton2))
-                .addContainerGap(136, Short.MAX_VALUE))
+                    .addComponent(buttonValidate)
+                    .addComponent(buttonStart))
+                .addContainerGap(30, Short.MAX_VALUE))
         );
 
         tabbedPane.addTab("Message Receiver", jPanel2);
@@ -286,6 +342,8 @@ public class ReceiverGUI extends javax.swing.JFrame {
                             new BigInteger(textModulus.getText()),
                             new BigInteger(textEksponen.getText())));
             tabbedPane.setSelectedIndex(2);
+            
+            System.err.println(this.pubKey.toString());
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(ReceiverGUI.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InvalidKeySpecException ex) {
@@ -299,13 +357,7 @@ public class ReceiverGUI extends javax.swing.JFrame {
     private void buttonStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonStartActionPerformed
         try {
             // TODO add your handling code here:
-            Receiver receiver = new Receiver(this.pubKey, 
-                    textHost.getText(), 
-                    textUsername.getText(), 
-                    textPassword.getText(), 
-                    textVhost.getText(), 
-                    textExchange.getText());
-            receiver.receive();
+            this.receive();
         } catch (IOException ex) {
             Logger.getLogger(ReceiverGUI.class.getName()).log(Level.SEVERE, null, ex);
         } catch (TimeoutException ex) {
@@ -313,6 +365,62 @@ public class ReceiverGUI extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_buttonStartActionPerformed
 
+    private void buttonValidateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonValidateActionPerformed
+        try {
+            //TODO add your handling code here:
+            Signature sig = Signature.getInstance("MD5WithRSA");
+            sig.initVerify(this.pubKey);
+            sig.update(textMessageReceived.getText().getBytes());
+            
+            JOptionPane.showMessageDialog(null, 
+                    sig.verify(Base64.getDecoder().decode(textSignature.getText())) ? "Message Valid": "Message not valid");
+            
+            System.out.println(new String(Base64.getDecoder().decode(textSignature.getText())));
+            
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(ReceiverGUI.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidKeyException ex) {
+            JOptionPane.showMessageDialog(null, "InvalidKey");
+        } catch (SignatureException ex) {
+            Logger.getLogger(ReceiverGUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_buttonValidateActionPerformed
+
+    private void receive() throws IOException, TimeoutException
+    {
+        factory = new ConnectionFactory();
+        factory.setHost(textHost.getText());
+        factory.setUsername(textUsername.getText());
+        factory.setPassword(textPassword.getText());
+        factory.setVirtualHost(textVhost.getText());
+        Connection connection = factory.newConnection();
+        Channel channel = connection.createChannel();
+
+        channel.exchangeDeclare(textExchange.getText(), "fanout");
+        String queueName = channel.queueDeclare().getQueue();
+        channel.queueBind(queueName, textExchange.getText(), "");
+
+        Consumer consumer = new DefaultConsumer(channel) {
+          @Override
+          public void handleDelivery(String consumerTag, Envelope envelope,
+                                     AMQP.BasicProperties properties, byte[] body) throws IOException {
+              try {
+                  String message = new String(body, "UTF-8");
+
+                  JSONParser jparser = new JSONParser();
+                  JSONObject jobj = (JSONObject) jparser.parse(message);
+                  
+                  textMessageReceived.setText((String) jobj.get("message"));
+                  textSignature.setText((String) jobj.get("signature"));
+
+              } catch (ParseException ex) {
+                  Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
+              }
+          }
+        };
+        channel.basicConsume(queueName, true, consumer);
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -354,7 +462,7 @@ public class ReceiverGUI extends javax.swing.JFrame {
     private javax.swing.JButton buttonKeyApply;
     private javax.swing.JButton buttonServerApply;
     private javax.swing.JButton buttonStart;
-    private javax.swing.JButton jButton2;
+    private javax.swing.JButton buttonValidate;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -362,11 +470,14 @@ public class ReceiverGUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTabbedPane tabbedPane;
     private javax.swing.JTextField textEksponen;
     private javax.swing.JTextField textExchange;
@@ -374,6 +485,7 @@ public class ReceiverGUI extends javax.swing.JFrame {
     private javax.swing.JTextArea textMessageReceived;
     private javax.swing.JTextArea textModulus;
     private javax.swing.JTextField textPassword;
+    private javax.swing.JTextArea textSignature;
     private javax.swing.JTextField textUsername;
     private javax.swing.JTextField textVhost;
     // End of variables declaration//GEN-END:variables

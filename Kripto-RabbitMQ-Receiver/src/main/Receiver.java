@@ -26,30 +26,31 @@ import org.json.simple.parser.ParseException;
  * @author akhfa
  */
 public class Receiver {
-    String host, username, password, vhost, exchange;
-    PublicKey pubKey;
-    public Receiver(PublicKey pubKey, String host, String username, String password, String vhost, String exchange)
-    {
-        this.pubKey = pubKey;
-        this.host = host;
-        this.username = username;
-        this.password = password;
-        this.vhost = vhost;
-        this.exchange = exchange;
-    }
-    public void receive() throws IOException, TimeoutException
+    public static String host, username, password, vhost, exchange;
+    public static PublicKey pubKey;
+    public static String mresult;
+//    public Receiver(PublicKey pubKey, String host, String username, String password, String vhost, String exchange)
+//    {
+//        this.pubKey = pubKey;
+//        this.host = host;
+//        this.username = username;
+//        this.password = password;
+//        this.vhost = vhost;
+//        this.exchange = exchange;
+//    }
+    public static void receive() throws IOException, TimeoutException
     {
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(this.host);
-        factory.setUsername(this.username);
-        factory.setPassword(this.password);
-        factory.setVirtualHost(this.vhost);
+        factory.setHost(Receiver.host);
+        factory.setUsername(Receiver.username);
+        factory.setPassword(Receiver.password);
+        factory.setVirtualHost(Receiver.vhost);
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
 
-        channel.exchangeDeclare(this.exchange, "fanout");
+        channel.exchangeDeclare(Receiver.exchange, "fanout");
         String queueName = channel.queueDeclare().getQueue();
-        channel.queueBind(queueName, this.exchange, "");
+        channel.queueBind(queueName, Receiver.exchange, "");
 
         System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
 
@@ -59,11 +60,14 @@ public class Receiver {
                                      AMQP.BasicProperties properties, byte[] body) throws IOException {
               try {
                   String message = new String(body, "UTF-8");
+                  mresult = message;
                   JSONParser jparser = new JSONParser();
                   JSONObject jobj = (JSONObject) jparser.parse(message);
-                  System.err.println(jobj.get("message"));
-                  System.err.println(jobj.get("signature"));
+//                  System.err.println(jobj.get("message"));
+//                  System.err.println(jobj.get("signature"));
 //            System.out.println(" [x] Received '" + message + "'");
+                    System.err.println(message);
+                    System.err.println(mresult);
               } catch (ParseException ex) {
                   Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
               }

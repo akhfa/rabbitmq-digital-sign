@@ -13,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.util.Base64;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -341,6 +342,8 @@ public class SenderGUI2 extends javax.swing.JFrame {
             // TODO add your handling code here:
             Sender sender = new Sender(this.privKey, textHost.getText(), textUsername.getText(), textPassword.getText(), textVhost.getText(), textExchange.getText());
             sender.sendMessage(textMessage.getText(), textSignature.getText());
+            System.out.println("after send: " + new String(Base64.getDecoder().decode(textSignature.getText())));
+            
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, "Error Sending Message");
         } catch (TimeoutException ex) {
@@ -364,7 +367,11 @@ public class SenderGUI2 extends javax.swing.JFrame {
             
             byte[] signatureBytes = sig.sign();
             
-            textSignature.setText(new BASE64Encoder().encode(signatureBytes));
+            String encodedSign = Base64.getEncoder().encodeToString(signatureBytes);
+            
+            textSignature.setText(encodedSign);
+            System.err.println("gen sign: " + new String(Base64.getDecoder().decode(encodedSign)));
+            
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(SenderGUI2.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InvalidKeyException ex) {
