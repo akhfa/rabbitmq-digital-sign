@@ -15,6 +15,11 @@ import com.rabbitmq.client.Envelope;
 import java.io.IOException;
 import java.security.PublicKey;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  *
@@ -52,8 +57,16 @@ public class Receiver {
           @Override
           public void handleDelivery(String consumerTag, Envelope envelope,
                                      AMQP.BasicProperties properties, byte[] body) throws IOException {
-            String message = new String(body, "UTF-8");
-            System.out.println(" [x] Received '" + message + "'");
+              try {
+                  String message = new String(body, "UTF-8");
+                  JSONParser jparser = new JSONParser();
+                  JSONObject jobj = (JSONObject) jparser.parse(message);
+                  System.err.println(jobj.get("message"));
+                  System.err.println(jobj.get("signature"));
+//            System.out.println(" [x] Received '" + message + "'");
+              } catch (ParseException ex) {
+                  Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
+              }
           }
         };
         channel.basicConsume(queueName, true, consumer);
